@@ -3,6 +3,7 @@
 # <span style="color:#F89D42"><big>&#9733;Dataviz builder</big></span><span style="color:#F47555"><big> with D3js:</big><span style="color:#CC2724"><big> Inequality dashboard &#9733;</big></span>
 
 #### &#9733;<i>Thomas Roca, PhD - AFD Research Direction &#9733;</i>
+*Version march the 15th 2016*
 
 <br>
 The following script aims at creating a dataviz dashboard representing inequality across space and time, to understand better inequality evolutions and disaprities among and within countries.
@@ -21,7 +22,7 @@ The data used to create the Inequality Dashboard comes from [UNU-Wider](https://
 
 
 
-*Version march the 5th 2016*
+
 
 ---
 **Link to resulting datavisualization dashboard**
