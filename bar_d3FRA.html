@@ -1,0 +1,446 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+
+    <title>Income distribution</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>    
+
+    <style type="text/css">
+
+    a:link,
+    a:visited {
+      color: #48709e;
+    }
+
+    a:hover {
+      color: #56afc7;
+    }
+
+    #d3portfolio {
+      position: absolute;
+      width: 900px;
+      height: 380px;
+      margin: 0px auto;
+    }
+
+    #objectives {
+      position: absolute;
+      top: 390px;
+      font: 18px Calibri;
+      color: #c69f9e;
+      margin-left: 320px;
+      z-index:1;
+    }
+
+    #title {
+     margin-left: 275px;
+      margin-top: 30px;
+      font: 28px Calibri;
+      color: #666666;
+    }
+
+    #txt {
+      margin-left: 650px;
+      margin-top: 200px;
+      font: 18px Calibri;
+      color: #c69f9e; 
+      position: absolute;
+    }
+
+    #gini_label {
+      position: absolute;
+      left: 77px;
+      top: 605px;
+     font: 12px Calibri;
+      color: black;
+      font-weight: bold;
+      }
+
+    #source {
+      font: 12px Calibri;
+      color: black;
+      font-weight: bold;
+      margin: 0px auto;  
+    }
+
+    .chartLabel {
+      font: 16px Calibri;
+      fill: #666;
+      font-weight: bold;
+    }
+
+    .arcLabel {
+      font: 11px Calibri;
+      fill: #fff;
+    }
+
+    .axis text { 
+        display: none;
+        }
+
+    #tooltip {
+      position: absolute;
+      width: 100px;
+      height: auto;
+      padding: 10px;
+      background-color: white;
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+      border-radius: 10px;
+      -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+      -mox-box-shadow: 4px 4px 4px 10px rgba(0, 0, 0, 0.4);
+      box-shadow: 4px 4px 10px rbga(0, 0, 0, 0.4) pointer-events: none;
+      background: none repeat scroll 0 0 white;
+      border: 0 none;
+      border-radius: 8px 8px 8px 8px;
+      box-shadow: -3px 3px 15px #888888;
+      color: black;
+      font: 12px sans-serif;
+      padding: 5px;
+      text-align: center;
+      z-index:2;
+    }
+
+    #tooltip.hidden {
+      opacity: 0;
+    }
+
+    .label-text {
+      alignment-baseline: middle;
+      font-size: 12px;
+      font-family: arial, helvetica, "sans-serif";
+      fill: #393939;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .label-line {
+      stroke-width: 1;
+      stroke: #393939;
+    }
+
+    .label-circle {
+      fill: #393939;
+    }
+
+    body {
+        font: 10px Calibri;
+        margin: 0px auto;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    /* ----------- Bar charts color ---- */
+    .bar {
+      fill: #eae9e8;
+      stroke: white;
+    }
+
+    .bar:hover {
+      fill: #ff671c;
+    }
+
+    /* ---------------Bar graph axis -----*/
+    .x.axis path {
+      display: none;
+    }
+
+    .x.tick text {
+        fill: none;
+        pointer-events: all;
+    }
+
+    .d3-tip {
+      line-height: 1;
+      font-weight: bold;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      border-radius: 2px;
+      font: 12px Calibri;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+      box-sizing: border-box;
+      display: inline;
+      font-size: 10px;
+      width: 100%;
+      line-height: 1;
+      color: rgba(0, 0, 0, 0.8);
+      position: absolute;
+      text-align: center;
+      font: 14px Calibri;
+    }
+
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+    }
+
+    </style>
+
+    <script type='text/javascript'>//<![CDATA[
+    
+    // This variable is used to color the initial Bar corresponding to the country 
+    var country="France"
+    var iso3="FRA"
+    $(window).load(function(){
+    
+      // Donut chart
+      var w = 920, // width and height, natch
+      h = 380,
+      r = Math.min(w, h) / 2, // arc radius
+      dur = 2200, // duration, in milliseconds
+      color = d3.scale.category10(),
+      donut = d3.layout.pie().sort(null),
+      arc = d3.svg.arc().innerRadius(r - 50).outerRadius(r - 110);
+
+
+    var year_max = {
+        label: "France 2011",
+        pct: [3.5, 5.1, 6.2, 7.0, 7.9, 8.8, 10.0, 11.5, 14.0, 25.9]
+      },
+      year_min = {
+        label: "France 1996",
+        pct: [3.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 15.0, 23.0]
+      },
+      income = {
+        label: "High income",
+        pct: ['2.84', '4.75', '5.82', '6.84', '7.88', '9.02', '10.39', '12.13', '14.86', '25.47']
+      },
+      data = year_max;
+
+    var labels = ['1st decile', '', '3rd', '', '', '', '', '8th decile', '9th decile', '10th decile'];
+    
+    // set Colors
+    var c1 = d3.rgb('#cc2724'),
+      c2 = d3.rgb('#DD7976'),
+      c3 = d3.rgb('#C69F9E'),
+      c4 = d3.rgb('#78A5DA'),
+      c5 = d3.rgb('#70C9E1');
+
+    var color = d3.scale.ordinal()
+      .range([c1, c2, c3, c3, c3, c3, c3, c3,c4,c5])
+
+    // ---------------------------------------------------------------------
+
+    var svg = d3.select("#d3portfolio").append("svg:svg")
+      .attr("width", w).attr("height", h);
+
+    var arc_grp = svg.append("svg:g")
+      .attr("class", "arcGrp")
+      .attr("transform", "translate(" + (w / 2) + "," + (h / 2) + ")");
+
+    var label_group = svg.append("svg:g")
+      .attr("class", "lblGroup")
+      .attr("transform", "translate(" + (w / 2) + "," + (h / 2) + ")");
+
+    // GROUP FOR CENTER TEXT
+    var center_group = svg.append("svg:g")
+      .attr("class", "ctrGroup")
+      .attr("transform", "translate(" + (w / 2) + "," + (h / 2) + ")");
+
+    // CENTER LABEL
+    var pieLabel = center_group.append("svg:text")
+      .attr("dy", ".35em").attr("class", "chartLabel")
+      .attr("text-anchor", "middle")
+      .text(data.label);
+
+    // DRAW ARC PATHS
+    var arcs = arc_grp.selectAll("path")
+      .data(donut(data.pct));
+    arcs.enter().append("svg:path")
+      .attr("stroke", "white")
+      .attr("stroke-width", 0.5)
+      .attr("fill", function(d, i) {
+        return color(i);
+      })
+      .attr("d", arc)
+      .each(function(d) {
+        this._current = d
+      })
+      .on("mouseover", function(d) {
+        d3.select("#tooltip")
+          .style("left", d3.event.pageX + "px")
+          .style("top", d3.event.pageY + "px")
+          .style("opacity", 1)
+          .select("#value")
+          .text(d.value);
+      })
+      .on("mouseout", function() {
+        // Hide the tooltip
+        d3.select("#tooltip")
+          .style("opacity", 0);
+      });
+
+
+    // DRAW SLICE LABELS
+    var sliceLabel = label_group.selectAll("text")
+      .data(donut(data.pct));
+    sliceLabel.enter().append("svg:text")
+      .attr("class", "arcLabel")
+      .attr("transform", function(d) {
+        return "translate(" + arc.centroid(d) + ")";
+      })
+      .attr("text-anchor", "middle")
+      .text(function(d, i) {
+        return labels[i];
+      });
+
+    // --------- -------------- ---------
+
+    // Store the currently-displayed angles in this._current.
+    // Then, interpolate from this._current to the new angles.
+    function arcTween(a) {
+      var i = d3.interpolate(this._current, a);
+      this._current = i(0);
+      return function(t) {
+        return arc(i(t));
+      };
+    }
+
+    // update chart
+    function updateChart(model) {
+      data = eval(model); // which model?
+
+      arcs.data(donut(data.pct)); // recompute angles, rebind data
+      arcs.transition().ease("elastic").duration(dur).attrTween("d", arcTween);
+
+      sliceLabel.data(donut(data.pct));
+      sliceLabel.transition().ease("elastic").duration(dur)
+        .attr("transform", function(d) {
+          return "translate(" + arc.centroid(d) + ")";
+        })
+        .style("fill-opacity", function(d) {
+          return d.value == 0 ? 1e-6 : 1;
+        });
+
+      pieLabel.text(data.label);
+    }
+
+    // click handler
+    $("#objectives a").click(function() {
+      updateChart(this.href.slice(this.href.indexOf('#') + 1));
+    });
+
+
+    //============================================== Create the bar chart ==============================================
+
+    var margin = {top: 470, right: 0, bottom: 0, left: 20},
+        width = w - margin.left - margin.right,
+        height = h - 250;
+
+    var formatPercent = d3.format(".0%");
+
+    var x = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+
+    var y = d3.scale.linear()
+        .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .ticks(0);
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(0);
+
+    var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return "<strong><span style='color:white'><big>"+d.cname+"</big></strong> </span><br><strong>Gini: <span style='color:#FFA500'>"
+        + d.gini + "</span></strong><br>"+"<strong>Survey year: <span style='color:#FFA500'>"+d.year
+      })
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    svg.call(tip);
+
+    d3.tsv("data.tsv", type, function(error, data) {
+      x.domain(data.map(function(d) { return d.cname; }));
+      y.domain([0, d3.max(data, function(d) { return d.gini; })]);
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        //.call(xAxis) //suppress xAxis
+      .selectAll("text")
+        .attr("y", 0)
+        .attr("x", 10)
+        .attr("dy", ".35em")
+        .attr("transform", "rotate(90)")
+        .style("text-anchor", "start");
+
+      svg.selectAll(".bar")
+          .data(data)
+        .enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", function(d) { return x(d.cname); })
+          .attr("width", x.rangeBand())
+          .attr("y", function(d) { return y(d.gini); })
+          .attr("height", function(d) { return height - y(d.gini); })
+          .on('click', BarLink)
+          .on('mouseover', tip.show)
+          .on('mouseout', tip.hide)
+          d3.selectAll(".bar")
+          .filter(function(d) { return d.cname == country;})
+          .style("fill", "orange");
+    });
+    
+    function BarLink(d,i) {
+    var url = "http://www.stats4dev.com/dataviz/bar_d3"+d.iso3+".html";
+        window.location.href = url;
+    }
+    
+    function type(d) {
+      d.gini = +d.gini;
+      return d;
+    }
+    });//]]> 
+
+    </script>
+    </head>
+
+    <body>
+    <text id="gini_label">Gini rankings - <i>last year available</i> </text>
+    <text id="txt">  } -> Middle Class</text>
+    <div id="objectives">
+      <a href="#year_max">France 2011 | </a>
+      <a href="#year_min">1996 | </a>
+      <a href="#income">High income Countries</a><br>
+      <text id="source">Data source: <a href="https://www.wider.unu.edu/data" target="_blank">UNU-Wider</a> |
+      dataviz by <a href="https://fr.linkedin.com/in/thomas-roca-43347484" target="_blank">Thomas Roca</a> with d3.js | <a href="dataset_for_dataviz.csv" target="_blank">Download data used</a></text>
+    </div>
+    <div id="d3portfolio">
+      <text id="title"> Income distribution by decile: <span style="color:orange">France</span></text>
+      
+    </div>
+    <div id="tooltip" class="hidden">
+      <p>These 10% of the population own
+        <b><span id="value"></span> %</b> of total income</p>
+    </div>
+    </body>
+    </html>
+    
