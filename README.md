@@ -24,7 +24,7 @@ The data used to create the Inequality Dashboard comes from [UNU-Wider](https://
 *Version march the 5th 2016*
 
 ---
-
+**Link to resulting datavisualization dashboard**
 [![image](dashboard.png)](http://stats4dev.com/dataviz/inequalityDashboard.html)
-[Link to resulting datavisualization dashboard](http://stats4dev.com/dataviz/inequalityDashboard.html)
+
 
